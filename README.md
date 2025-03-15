@@ -9,7 +9,7 @@ Un possibile utilizzo potrebbe essere il posizionamento in una stanza (per esemp
 Oltre ad un output visivo (per esempio un LED verde, giallo e rosso), si potrebbe condividere queste informazioni via web e salvarle su un DB esterno.\
 Componentistica hardware:
 
-1. [ESP32](https://www.amazon.it/dp/B0CTMQQ1W4?ref=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&ref_=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&social_share=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&starsLeft=1) Scheda ed elementi basilari
+1. [ESP32]([https://www.amazon.it/dp/B0CTMQQ1W4?ref=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&ref_=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&social_share=cm_sw_r_cso_cp_apin_dp_YHYKW8WQA1EF46Z6NDEJ&starsLeft=1](https://www.amazon.it/LYEAA-Componenti-elettronici-Apprendimento-Fotoresistore/dp/B0CHQVCL1C/ref=sr_1_34?sr=8-34)) Scheda ed elementi basilari
 2. [MQ-135](https://www.amazon.it/AZDelivery-MQ135-Gas-Sensor-Parent/dp/B07CNR9K8P?th=1) (Sensore qualità dell'aria)
 
 **Link a repo:** https://github.com/alessandrofascini/air-quality
