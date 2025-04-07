@@ -7,7 +7,7 @@ fn main() {
 
     // Configure Led
     let peripherals = Peripherals::take().unwrap();
-    let mut led = PinDriver::output(peripherals.pins.gpio2).unwrap();
+    let mut led = PinDriver::output(peripherals.pins.gpio19).unwrap();
 
     loop {
         log::info!("hello, esp32!");
@@ -32,6 +32,6 @@ fn main() {
         };
 
         // Wait
-        std::thread::sleep(std::time::Duration::from_millis(1000));
+        std::thread::sleep(std::time::Duration::from_millis(2000));
     }
 }
