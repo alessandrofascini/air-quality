@@ -21,6 +21,8 @@ Where
 
 ## IAQv2
 
+This version use [MQ135 calibration](./MQ135.md#calibration)
+
 > IAQ = 100 − (w₁⋅$f(ρ)$ + w₂⋅∣H − θ∣ + w₃⋅∣T − λ∣)
 
 Where
