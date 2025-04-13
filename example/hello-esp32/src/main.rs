@@ -7,7 +7,7 @@ fn main() {
 
     // Configure Led
     let peripherals = Peripherals::take().unwrap();
-    let mut led = PinDriver::output(peripherals.pins.gpio19).unwrap();
+    let mut led = PinDriver::output(peripherals.pins.gpio2).unwrap();
 
     loop {
         log::info!("hello, esp32!");
