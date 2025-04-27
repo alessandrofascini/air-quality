@@ -17,7 +17,7 @@ RH (Relative Humidity): how much humidity is present in the air, compared to how
 
 #### Sampling Period:
 
-1 second
+1s - 2s
 
 #### Stabilisation Time
 

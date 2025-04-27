@@ -1,0 +1,14 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "a simple http server",
+  "main": "main.js",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "Alessandro Fascini",
+  "license": "ISC"
+}
