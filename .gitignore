@@ -1,6 +1,10 @@
-/.vscode
+.vscode
 /.embuild
 /target
 /Cargo.lock
-/.idea
+/**/*/.idea
+/**/*/node_modules
 /**/*/secrets.cpp
+/**/*/node_modules/
+/**/*/volumes/
+/**/*/.env

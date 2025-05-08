@@ -1,0 +1,12 @@
+version: '3.9'
+name: "AirQuality"
+
+services:
+  mongo:
+    image: mongo:8.0
+    env_file:
+      - ./.env
+
+volumes:
+  mongodata:
+    
