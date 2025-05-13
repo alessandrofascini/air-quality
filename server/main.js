@@ -8,7 +8,7 @@ app.post("/", (req, res) => {
   req.accepts("text/plain");
 
   const timestamp = new Date();
-  const [temperature, humidity, ...R] = req.body.split(";").map((v) => +v);
+  const [temperature, humidity, ...R] = req.body.split(";").filter(v => v !== "").map((v) => +v);
 
   console.log(
     `[${timestamp.toISOString()}] T = ${temperature.toFixed(
