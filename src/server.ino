@@ -22,8 +22,7 @@ int setupWiFi()
   return WL_CONNECTED;
 }
 
-int shareValues(float temperature, float humidity)
-{
+int shareValues(float temperature, uint8_t humidity, uint16_t analog_read) {
   WiFiClient client;
   HTTPClient http;
 
@@ -32,8 +31,7 @@ int shareValues(float temperature, float humidity)
 
   http.addHeader(F("Content-Type"), F("text/plain"));
 
-  int httpResponseCode = http.POST(String(temperature) + ";" + humidity
-  );
+  int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read);
 
   // Free resources
   http.end();
