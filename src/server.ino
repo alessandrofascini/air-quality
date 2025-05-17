@@ -4,8 +4,7 @@
 #include <format>
 #include <string>
 
-int setupWiFi()
-{
+int setupWiFi() {
   const uint8_t retry = 20;
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
