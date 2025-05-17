@@ -68,7 +68,7 @@ void setup() {
   Serial.println(DONE);
 
   // setupWifi
-  Serial.print("[SETUP] WiFi: ");
+  Serial.print("[SETUP] WI-FI: ");
   setupWiFi();
   Serial.println(DONE);
 
@@ -99,7 +99,7 @@ void readTemperatureAndHumidity() {
   const uint8_t h = (uint8_t)dht.readHumidity();
 
   if (isnan(t) || isnan(h)) {
-    Serial.println(F("failed to read from DHT sensor!"));
+    Serial.println(F("[ERR] failed to read from DHT sensor!"));
   } else {
     // Serial.print(F("temperature: ")); Serial.println(t);
     temperature.addValue(t);
@@ -149,7 +149,7 @@ float percentIAQI(float t, uint8_t h, uint16_t value) {
   Serial.print(F("Aceton: ")); Serial.print(Aceton, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_aceton, 3);
 
   iaqi = 100 - iaqi;
-  Serial.print(F("=> IAQI = ")); Serial.print(iaqi, 3); Serial.println(F(" <=\n"));
+  Serial.print(F("=> IAQI = ")); Serial.print(iaqi, 3); Serial.println(F(" <="));
   return iaqi;
 }
 
@@ -189,5 +189,12 @@ void output() {
   leds.show(conf);
 
   /// 
-  shareValues(t, h, analog_read);
+  const int16_t responseCode = shareValues(t, h, analog_read);
+  Serial.print(F("HTTP POST: "));
+  if (responseCode == 200) {
+    Serial.println(F("OK"));
+  } else {
+    Serial.println(responseCode);
+  }
+  Serial.println();
 }
