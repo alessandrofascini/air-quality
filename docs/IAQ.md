@@ -101,7 +101,7 @@ float f(float ppm) {
 | 10 – 50       | 201 – 300      | Tossicità cronica                |
 | >50           | >300           | Pericoloso                       |
 
-| NH₃ (ppm)   | IAQI (stimato) | Commento                   |
+| NH4 (ppm)   | IAQI (stimato) | Commento                   |
 | ----------- | -------------- | -------------------------- |
 | 0 – 0.25    | 0 – 50         | Tipico in casa             |
 | 0.26 – 1.0  | 51 – 100       | Odore percettibile         |

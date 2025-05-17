@@ -25,7 +25,6 @@ RunningAverage temperature(15);
 RunningAverage humidity(15);
 RunningAverage gas(30);
 
-
 /// FUNCTIONS PROTOTYPE
 void readTemperatureAndHumidity();
 void readGas();
@@ -54,7 +53,6 @@ Task tOutput(30 * TASK_SECOND,
              true
 );
 
-
 /// SETUP
 void setup() {
   Serial.begin(115200);
@@ -81,6 +79,7 @@ void loop() {
 /// FUNCTIONS
 
 void readTemperatureAndHumidity() {
+  // corrector value
   const float t = dht.readTemperature() - 1.;
   const uint8_t h = (uint8_t)dht.readHumidity();
 
@@ -89,46 +88,63 @@ void readTemperatureAndHumidity() {
   } else {
     // Serial.print(F("temperature: ")); Serial.println(t);
     temperature.addValue(t);
-
     // Serial.print(F("humidity: ")); Serial.println(h);
     humidity.addValue(h);
   }
 }
 
-
 void readGas() {
   const uint16_t value = analogRead(MQ135_A0);
- // Serial.print(F("analog read: ")); Serial.println(value);
+  // Serial.print(F("ar: ")); Serial.println(value);
   gas.addValue(value);
 }
 
-void output() {
+float percentIAQI() {
   const float t = temperature.getAverage();
   const uint8_t h = humidity.getAverage();
   const uint16_t value = gas.getAverage();
 
-  Serial.println(F("PPMs:"));
-
-  const float CO = ppmCO(&MQ135, t, h, value);
-  Serial.print(F("CO: ")); Serial.println(CO, 3);
-  Serial.print(F("IAQI_CO: ")); Serial.println(iaqiCO(CO), 3);
-
-  const float Alcohol = ppmAlcohol(&MQ135, t, h, value);
-  Serial.print(F("Alcohol: ")); Serial.println(Alcohol, 3);
-
-  const float CO2 = ppmCO2(&MQ135, t, h, value);
-  Serial.print(F("CO2: ")); Serial.println(CO2, 3);
-
-  const float Toluen = ppmToluen(&MQ135, t, h, value);
-  Serial.print(F("Toluen: ")); Serial.println(Toluen, 3);
+  Serial.println(F("=> DATA <="));
+  Serial.print(F("T: ")); Serial.print(t); Serial.println(F(" °C"));
+  Serial.print(F("H: ")); Serial.print(h); Serial.println(F(" %"));
+  Serial.print(F("A: ")); Serial.print(value); Serial.println();
   
-  const float NH4 = ppmNH4(&MQ135, t, h, value);
-  Serial.print(F("NH4: ")); Serial.println(NH4, 3);
+  Serial.println(F("=> PPM <=")); // todo: better here
 
-  const float Aceton = ppmAceton(&MQ135, t, h, value);
-  Serial.print(F("Aceton: ")); Serial.println(Aceton, 3);
+  const float correctionFactor = ppmPrepare(&MQ135, value, t, h);
 
-  const float IAQ = random(0, 101);
+  const float CO = ppmCO(&MQ135, correctionFactor);
+  float iaqi = iaqiCO(CO);
+  Serial.print(F("CO: ")); Serial.print(CO, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+
+  const float Alcohol = ppmAlcohol(&MQ135, correctionFactor);
+  iaqi = max(iaqi, iaqiAlcohol(Alcohol));
+  Serial.print(F("Alcohol: ")); Serial.print(Alcohol, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+
+  const float CO2 = ppmCO2(&MQ135, correctionFactor);
+  iaqi = max(iaqi, iaqiCO2(CO2));
+  Serial.print(F("CO2: ")); Serial.print(CO2, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+
+  const float Toluen = ppmToluen(&MQ135, correctionFactor);
+  iaqi = max(iaqi, iaqiToluen(Toluen));
+  Serial.print(F("Toluen: ")); Serial.print(Toluen, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+  
+  const float NH4 = ppmNH4(&MQ135, correctionFactor);
+  iaqi = max(iaqi, iaqiNH4(NH4));
+  Serial.print(F("NH4: ")); Serial.print(NH4, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3); 
+
+  const float Aceton = ppmAceton(&MQ135, correctionFactor);
+  iaqi = max(iaqi, iaqiAceton(Aceton));
+  Serial.print(F("Aceton: ")); Serial.print(Aceton, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+
+  iaqi = 100 - iaqi;
+  Serial.print(F("=> IAQI = ")); Serial.print(iaqi, 3); Serial.println(F(" <=\n"));
+  return iaqi;
+}
+
+void output() {
+  const float iaqi = percentIAQI();
+
   /// generate configuration
   uint8_t conf = 0x0;
 
@@ -136,14 +152,14 @@ void output() {
   const uint8_t HIGH_YELLOW = 2;
   const uint8_t HIGH_RED = 4;
 
-  if (60 <= IAQ) {
-    conf |= HIGH_GREEN;
-  }
-  if (20 <= IAQ && IAQ < 80) {
+  if (20 <= iaqi && iaqi < 80) {
     conf |= HIGH_YELLOW;
   }
-  if (IAQ < 40) {
+    if (iaqi < 40) {
     conf |= HIGH_RED;
+  }
+  if (60 <= iaqi) {
+    conf |= HIGH_GREEN;
   }
   ////
 

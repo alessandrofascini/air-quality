@@ -6,7 +6,7 @@ const uint8_t DHT11_D0 = 23;
 const uint8_t MQ135_A0 = 34;
 
 const float RATIO_CLEAN_AIR = 3.6;
-const unsigned long MAX_READINGS = 30;
+const unsigned long MAX_READINGS = 60;
 
 // globals
 MQUnifiedsensor newMQ135();
@@ -63,7 +63,7 @@ void loop() {
 
 MQUnifiedsensor newMQ135() {
   MQUnifiedsensor sensor("ESP32", 3.3, 12, MQ135_A0, "MQ135");
-  sensor.setRegressionMethod(1); //_PPM =  a*ratio^b
+  // sensor.setRegressionMethod(1); //_PPM =  a*ratio^b
   sensor.setRL(20);
   return sensor;
 }
