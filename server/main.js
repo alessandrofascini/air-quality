@@ -1,7 +1,7 @@
-const fs = require("node:fs");
 const express = require("express");
 const app = express();
 const { MongoClient } = require("mongodb");
+
 require("dotenv").config();
 
 const {
@@ -16,10 +16,13 @@ const {
 
 app.use(express.text());
 
-async function connect() {
+const client = (() => {
   const uri = `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}?authSource=${MONGODB_AUTH_SOURCE}`;
+  return new MongoClient(uri);
+})();
+
+async function connect() {
   try {
-    const client = new MongoClient(uri);
     await client.connect();
     return [
       client,
