@@ -28,6 +28,7 @@ RunningAverage gas(30);
 /// FUNCTIONS PROTOTYPE
 void readTemperatureAndHumidity();
 void readGas();
+void startTaskOutput();
 void output();
 
 /// TASKS
@@ -46,7 +47,13 @@ Task tGas(TASK_SECOND,
   true
 );
 
-// TODO: post start
+Task tStartOutput(TASK_IMMEDIATE,
+  1,
+  startTaskOutput,
+  &ts,
+  false
+);
+
 Task tOutput(30 * TASK_SECOND,
   TASK_FOREVER,
   output,
@@ -84,6 +91,8 @@ void setup() {
   Serial.println(DONE);
 
   Serial.println("[SETUP] finished\n");
+
+  tOutput.enableDelayed(30 * TASK_SECOND);
 }
 
 /// LOOP
@@ -118,7 +127,8 @@ float percentIAQI(float t, uint8_t h, uint16_t value) {
   Serial.println(F("=> PPM <=")); // todo: better here
 
   const float correctionFactor = ppmPrepare(&MQ135, value, t, h);
-
+  Serial.print(F("Correction Factor: ")); Serial.println(correctionFactor);
+  
   const float CO = ppmCO(&MQ135, correctionFactor);
   float iaqi = iaqiCO(CO);
   Serial.print(F("CO: ")); Serial.print(CO, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
@@ -171,6 +181,10 @@ uint8_t generateLedConfiguration(float iaqi) {
   }
 
   return conf;
+}
+
+void startTaskOutput() {
+  tOutput.enable();
 }
 
 void output() {
