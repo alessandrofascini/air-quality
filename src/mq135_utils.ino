@@ -7,6 +7,7 @@ MQUnifiedsensor newMQ135(uint8_t PIN_A0) {
   sensor.setRegressionMethod(1); //_PPM =  a*ratio^b
   sensor.setRL(20);
   // sensor.setR0(76.81);
-  sensor.setR0(71.6152);
+  // sensor.setR0(71.6152);
+  sensor.setR0(6.9358);
   return sensor;
 }
