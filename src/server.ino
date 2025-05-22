@@ -21,19 +21,15 @@ int setupWiFi() {
   return WL_CONNECTED;
 }
 
-int shareValues(float temperature, uint8_t humidity, uint16_t analog_read) {
+int shareValues(float temperature, uint8_t humidity, uint16_t analog_read, float iaqi) {
   WiFiClient client;
   HTTPClient http;
 
-  // Your Domain name with URL path or IP address with path
   http.begin(client, SERVER_PATH);
 
   http.addHeader(F("Content-Type"), F("text/plain"));
 
-  int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read);
-
-  // Free resources
+  int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read + ";" + iaqi);
   http.end();
-
   return httpResponseCode;
 }

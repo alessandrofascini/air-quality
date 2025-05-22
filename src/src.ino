@@ -203,7 +203,7 @@ void output() {
   leds.show(conf);
 
   /// 
-  const int16_t responseCode = shareValues(t, h, analog_read);
+  const int16_t responseCode = shareValues(t, h, analog_read, iaqi);
   Serial.print(F("HTTP POST: "));
   if (responseCode == 200) {
     Serial.println(F("OK"));

@@ -73,6 +73,7 @@ app.post("/", async (req, res) => {
 
   try {
     const timestamp = new Date();
+
     const [temperature, humidity, raw_value, iaqi] = req.body
       .split(";")
       .filter((v) => v !== "")
@@ -84,7 +85,7 @@ app.post("/", async (req, res) => {
     //   )} °C ± 2; RH = ${humidity} % ± 5; raw_value = ${raw_value}; IAQI = ${iaqi}`
     // );
     //  KΩ
-
+    console.log(timestamp, temperature, humidity, raw_value, iaqi);
     await collection.insertOne({
       timestamp,
       temperature,
