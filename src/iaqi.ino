@@ -127,3 +127,43 @@ float iaqiAceton(float ppm) {
   ///
   return findBreakpointsAndCalculate(ppm, table, n, 300) / 3.;
 }
+
+float iaqIndex(float t, uint8_t h, uint16_t value) {
+  Serial.println(F("=> PPM <=")); // todo: better here
+
+  const float correctionFactor = ppmPrepare(&MQ135, value, t, h);
+  Serial.print(F("Correction Factor: ")); Serial.println(correctionFactor);
+  
+  const float CO = ppmCO(&MQ135, correctionFactor);
+  float iaqi = iaqiCO(CO);
+  Serial.print(F("CO: ")); Serial.print(CO, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
+
+  const float Alcohol = ppmAlcohol(&MQ135, correctionFactor);
+  const float iaqi_alcohol = iaqiAlcohol(Alcohol);
+  iaqi = max(iaqi, iaqi_alcohol);
+  Serial.print(F("Alcohol: ")); Serial.print(Alcohol, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_alcohol, 3);
+
+  const float CO2 = ppmCO2(&MQ135, correctionFactor);
+  const float iaqi_CO2 = iaqiCO2(CO2);
+  iaqi = max(iaqi, iaqi_CO2);
+  Serial.print(F("CO2: ")); Serial.print(CO2, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_CO2, 3);
+
+  const float Toluen = ppmToluen(&MQ135, correctionFactor);
+  const float iaqi_toluen = iaqiToluen(Toluen);
+  iaqi = max(iaqi, iaqi_toluen);
+  Serial.print(F("Toluen: ")); Serial.print(Toluen, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_toluen, 3);
+  
+  const float NH4 = ppmNH4(&MQ135, correctionFactor);
+  const float iaqi_NH4 = iaqiNH4(NH4);
+  iaqi = max(iaqi, iaqi_NH4);
+  Serial.print(F("NH4: ")); Serial.print(NH4, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_NH4, 3); 
+
+  const float Aceton = ppmAceton(&MQ135, correctionFactor);
+  const float iaqi_aceton = iaqiAceton(Aceton);
+  iaqi = max(iaqi, iaqi_aceton);
+  Serial.print(F("Aceton: ")); Serial.print(Aceton, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_aceton, 3);
+
+  iaqi = 100 - iaqi;
+  Serial.print(F("=> IAQI = ")); Serial.print(iaqi, 3); Serial.println(F(" <="));
+  return iaqi;
+}

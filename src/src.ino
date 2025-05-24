@@ -10,11 +10,16 @@ const uint8_t YELLOW_LED = 19;
 const uint8_t RED_LED = 21;
 
 const uint8_t MQ135_A0 = 34;
-// const uint8_t MQ135_D0 = 36;
+const uint8_t MQ135_D0 = 22;
 const uint8_t DHT_PIN = 23;
 
-/// GLOBALS
+/// FUNCTIONS PROTOTYPE
 MQUnifiedsensor newMQ135(uint8_t PIN_A0); 
+void readTemperatureAndHumidity();
+void readGas();
+void readGasImmediate();
+void startTaskOutput();
+void output();
 
 Scheduler ts;
 MQUnifiedsensor MQ135 = newMQ135(MQ135_A0);
@@ -23,13 +28,7 @@ GYRLed leds(GREEN_LED, YELLOW_LED, RED_LED);
 
 RunningAverage temperature(15);
 RunningAverage humidity(15);
-RunningAverage gas(30);
-
-/// FUNCTIONS PROTOTYPE
-void readTemperatureAndHumidity();
-void readGas();
-void startTaskOutput();
-void output();
+RunningAverage gas(40);
 
 /// TASKS
 
@@ -47,9 +46,9 @@ Task tGas(TASK_SECOND,
   true
 );
 
-Task tStartOutput(TASK_IMMEDIATE,
-  1,
-  startTaskOutput,
+Task tGasImmediate(TASK_IMMEDIATE,
+  TASK_FOREVER,
+  readGasImmediate,
   &ts,
   false
 );
@@ -61,47 +60,70 @@ Task tOutput(30 * TASK_SECOND,
   true
 );
 
+/// INTERRUPTS
+volatile unsigned long last_call = 0;
+volatile bool readGasNow = false;
+void IRAM_ATTR isr() {
+  const unsigned long now = millis();
+  if (now - last_call > 800) {
+    last_call = now;
+    readGasNow = true;
+  }
+}
+
 /// SETUP
 void setup() {
   Serial.begin(115200);
   delay(2000);
-  Serial.println("[SETUP] begin");
 
-  const String DONE = "DONE";
+  const String SETUP = F("[SETUP]");
+  const String DONE = F("done");
+
+  Serial.print(SETUP); Serial.println(F(" begin"));
 
   /// setup led
-  Serial.print("[SETUP] LED: ");
+  Serial.print(SETUP); Serial.print(F(" LED: "));
   leds.setup();
   Serial.println(DONE);
 
   // setupWifi
-  Serial.print("[SETUP] WI-FI: ");
+  Serial.print(SETUP); Serial.print(F(" WI-FI: "));
   setupWiFi();
   Serial.println(DONE);
 
   // MQ135
-  Serial.print("[SETUP] MQ135: ");
+  Serial.print(SETUP); Serial.print(F(" MQ135: "));
   MQ135.init();
-  // pinMode(MQ135_D0, INPUT);
-  Serial.println(DONE);
+
+  if(digitalPinToInterrupt(MQ135_D0) == -1) {
+    Serial.print(F("\n | cannot attach interrupt on pin ")); Serial.print(MQ135_D0);
+  } else {
+    pinMode(MQ135_D0, INPUT_PULLUP);
+    attachInterrupt(MQ135_D0, isr, FALLING);
+    Serial.print(F("\n | attached interrupt on pin ")); Serial.print(MQ135_D0);
+  }
+  Serial.print(F("\n | ")); Serial.println(DONE);
 
   // DHT11
-  Serial.print("[SETUP] DHT11: ");
+  Serial.print(SETUP); Serial.print(F(" DHT11: "));
   dht.begin();
   Serial.println(DONE);
 
-  Serial.println("[SETUP] finished\n");
+  Serial.print(SETUP); Serial.println(F(" finished\n"));
 
   tOutput.enableDelayed(30 * TASK_SECOND);
 }
 
 /// LOOP
 void loop() {
+  if (readGasNow) {
+    readGasNow = false;
+    tGasImmediate.enable();
+  }
   ts.execute();
 }
 
 /// FUNCTIONS
-
 void readTemperatureAndHumidity() {
   // corrector value
   const float t = dht.readTemperature() - 1.;
@@ -117,50 +139,20 @@ void readTemperatureAndHumidity() {
   }
 }
 
-void readGas() {
+inline void mq135AnalogRead() {
   const uint16_t value = analogRead(MQ135_A0);
   // Serial.print(F("ar: ")); Serial.println(value);
   gas.addValue(value);
 }
 
-float percentIAQI(float t, uint8_t h, uint16_t value) {
-  Serial.println(F("=> PPM <=")); // todo: better here
+void readGas() {
+  mq135AnalogRead();
+}
 
-  const float correctionFactor = ppmPrepare(&MQ135, value, t, h);
-  Serial.print(F("Correction Factor: ")); Serial.println(correctionFactor);
-  
-  const float CO = ppmCO(&MQ135, correctionFactor);
-  float iaqi = iaqiCO(CO);
-  Serial.print(F("CO: ")); Serial.print(CO, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi, 3);
-
-  const float Alcohol = ppmAlcohol(&MQ135, correctionFactor);
-  const float iaqi_alcohol = iaqiAlcohol(Alcohol);
-  iaqi = max(iaqi, iaqi_alcohol);
-  Serial.print(F("Alcohol: ")); Serial.print(Alcohol, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_alcohol, 3);
-
-  const float CO2 = ppmCO2(&MQ135, correctionFactor);
-  const float iaqi_CO2 = iaqiCO2(CO2);
-  iaqi = max(iaqi, iaqi_CO2);
-  Serial.print(F("CO2: ")); Serial.print(CO2, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_CO2, 3);
-
-  const float Toluen = ppmToluen(&MQ135, correctionFactor);
-  const float iaqi_toluen = iaqiToluen(Toluen);
-  iaqi = max(iaqi, iaqi_toluen);
-  Serial.print(F("Toluen: ")); Serial.print(Toluen, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_toluen, 3);
-  
-  const float NH4 = ppmNH4(&MQ135, correctionFactor);
-  const float iaqi_NH4 = iaqiNH4(NH4);
-  iaqi = max(iaqi, iaqi_NH4);
-  Serial.print(F("NH4: ")); Serial.print(NH4, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_NH4, 3); 
-
-  const float Aceton = ppmAceton(&MQ135, correctionFactor);
-  const float iaqi_aceton = iaqiAceton(Aceton);
-  iaqi = max(iaqi, iaqi_aceton);
-  Serial.print(F("Aceton: ")); Serial.print(Aceton, 3); Serial.print(F(" - IAQI: ")); Serial.println(iaqi_aceton, 3);
-
-  iaqi = 100 - iaqi;
-  Serial.print(F("=> IAQI = ")); Serial.print(iaqi, 3); Serial.println(F(" <="));
-  return iaqi;
+void readGasImmediate() {
+  //Serial.println(F("gas readed from interrupt!"));
+  mq135AnalogRead();
+  tGasImmediate.disable();
 }
 
 uint8_t generateLedConfiguration(float iaqi) {
@@ -183,10 +175,6 @@ uint8_t generateLedConfiguration(float iaqi) {
   return conf;
 }
 
-void startTaskOutput() {
-  tOutput.enable();
-}
-
 void output() {
   const float t = temperature.getAverage();
   const uint8_t h = humidity.getAverage();
@@ -197,7 +185,7 @@ void output() {
   Serial.print(F("H: ")); Serial.print(h); Serial.println(F(" %"));
   Serial.print(F("V: ")); Serial.print(analog_read); Serial.println();
 
-  const float iaqi = percentIAQI(t, h, analog_read);
+  const float iaqi = iaqIndex(t, h, analog_read);
 
   const uint8_t conf = generateLedConfiguration(iaqi);
   leds.show(conf);
