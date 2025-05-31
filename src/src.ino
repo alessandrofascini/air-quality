@@ -24,6 +24,7 @@ void readGasImmediate();
 void startTaskOutput();
 void output();
 
+// GLOBAL VARIABLES
 Scheduler ts;
 MQUnifiedsensor MQ135 = newMQ135(MQ135_A0);
 DHT dht(DHT_D0, DHT11);
@@ -33,36 +34,45 @@ RunningAverage humidity(15);
 RunningAverage gas(60);
 
 /// TASKS
-Task tSetupFinished(TASK_IMMEDIATE, 
+Task tSetupFinished(
+  TASK_IMMEDIATE, 
   TASK_ONCE,
   setupFinished,
   &ts,
   true
 );
 
-Task tTempHum(2 * TASK_SECOND,
-              TASK_FOREVER,
-              readTemperatureAndHumidity,
-              &ts,
-              true);
+Task tTempHum(
+  2 * TASK_SECOND,
+  TASK_FOREVER,
+  readTemperatureAndHumidity,
+  &ts,
+  true
+);
 
-Task tGas(TASK_SECOND,
-          TASK_FOREVER,
-          readGas,
-          &ts,
-          true);
+Task tGas(
+  TASK_SECOND,
+  TASK_FOREVER,
+  readGas,
+  &ts,
+  true
+);
 
-Task tGasImmediate(TASK_IMMEDIATE,
-                   TASK_FOREVER,
-                   readGasImmediate,
-                   &ts,
-                   false);
+Task tGasImmediate(
+  TASK_IMMEDIATE,
+  TASK_FOREVER,
+  readGasImmediate,
+  &ts,
+  false
+);
 
-Task tOutput(30 * TASK_SECOND,
-             TASK_FOREVER,
-             output,
-             &ts,
-             true);
+Task tOutput(
+  30 * TASK_SECOND,
+  TASK_FOREVER,
+  output,
+  &ts,
+  true
+);
 
 /// INTERRUPTS
 volatile unsigned long last_call = 0;
