@@ -3,7 +3,7 @@ struct Breakpoint {
   uint Ilo, Ihi;
 };
 
-float findBreakpointsAndCalculate(float ppm, struct Breakpoint* table[], const int n, float outOfRange) {
+inline float findBreakpointsAndCalculate(float ppm, struct Breakpoint* table[], const int n, float outOfRange) {
   for (int i = 0; i < n; i++) {
     const Breakpoint* bp = table[i];
     if (ppm < bp->BPhi) {
@@ -27,10 +27,6 @@ float iaqiCO(float ppm) {
   
   Breakpoint* table[n] = { &bp0, &bp1, &bp2, &bp3, &bp4, &bp5, &bp6 };
 
-  /* for (int i = 0; i < n; i++) {
-    table[i][0] *= 1.5;
-    table[i][1] *= 1.5;
-  } */
   return findBreakpointsAndCalculate(ppm, table, n, 500) / 5.;
 }
 

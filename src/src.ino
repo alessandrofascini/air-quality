@@ -1,20 +1,23 @@
-#include "led.cpp"
 #include <MQUnifiedsensor.h>
 #include <DHT.h>
 #include <TaskScheduler.h>
 #include <RunningAverage.h>
+#include <WiFi.h>
 
 /// CONSTANTS
-const uint8_t GREEN_LED = 18;
-const uint8_t YELLOW_LED = 19;
-const uint8_t RED_LED = 21;
+const inline uint8_t GREEN_LED = 18;
+const inline uint8_t YELLOW_LED = 19;
+const inline uint8_t RED_LED = 21;
+const inline uint8_t LED_PINS = ((RED_LED << 5) & 224) | ((YELLOW_LED << 2) & 28) | (GREEN_LED & 3);
 
-const uint8_t MQ135_A0 = 34;
-const uint8_t MQ135_D0 = 22;
-const uint8_t DHT_PIN = 23;
+const inline uint8_t MQ135_A0 = 34;
+const inline uint8_t MQ135_D0 = 22;
+const inline uint8_t DHT_D0 = 23;
+const inline uint8_t SETUP_FINISHED_PIN = 2;
 
 /// FUNCTIONS PROTOTYPE
 MQUnifiedsensor newMQ135(uint8_t PIN_A0);
+void setupFinished();
 void readTemperatureAndHumidity();
 void readGas();
 void readGasImmediate();
@@ -23,14 +26,19 @@ void output();
 
 Scheduler ts;
 MQUnifiedsensor MQ135 = newMQ135(MQ135_A0);
-DHT dht(DHT_PIN, DHT11);
-GYRLed leds(GREEN_LED, YELLOW_LED, RED_LED);
+DHT dht(DHT_D0, DHT11);
 
 RunningAverage temperature(15);
 RunningAverage humidity(15);
-RunningAverage gas(40);
+RunningAverage gas(60);
 
 /// TASKS
+Task tSetupFinished(TASK_IMMEDIATE, 
+  TASK_ONCE,
+  setupFinished,
+  &ts,
+  true
+);
 
 Task tTempHum(2 * TASK_SECOND,
               TASK_FOREVER,
@@ -61,7 +69,7 @@ volatile unsigned long last_call = 0;
 volatile bool readGasNow = false;
 void IRAM_ATTR isr() {
   const unsigned long now = millis();
-  if (now - last_call > 800) {
+  if (now - last_call > 750) {
     last_call = now;
     readGasNow = true;
   }
@@ -70,29 +78,25 @@ void IRAM_ATTR isr() {
 /// SETUP
 void setup() {
   Serial.begin(115200);
-  delay(2000);
+  delay(1000);
 
   const String SETUP = F("[SETUP]");
   const String DONE = F("done");
 
-  Serial.print(SETUP);
-  Serial.println(F(" begin"));
+  Serial.print(SETUP); Serial.println(F(" begin"));
 
   /// setup led
-  Serial.print(SETUP);
-  Serial.print(F(" LED: "));
-  leds.setup();
+  Serial.print(SETUP); Serial.print(F(" LED: "));
+  setupLeds(LED_PINS);
   Serial.println(DONE);
 
-  // setupWifi
-  Serial.print(SETUP);
-  Serial.print(F(" WI-FI: "));
+  // setup wifi
+  Serial.print(SETUP); Serial.print(F(" WI-FI: "));
   setupWiFi();
   Serial.println(DONE);
 
-  // MQ135
-  Serial.print(SETUP);
-  Serial.print(F(" MQ135: "));
+  // setup MQ135
+  Serial.print(SETUP); Serial.print(F(" MQ135: "));
   MQ135.init();
 
   if (digitalPinToInterrupt(MQ135_D0) == -1) {
@@ -101,20 +105,21 @@ void setup() {
   } else {
     pinMode(MQ135_D0, INPUT_PULLUP);
     attachInterrupt(MQ135_D0, isr, FALLING);
-    Serial.print(F("\n | attached interrupt on pin "));
-    Serial.print(MQ135_D0);
+    Serial.print(F("\n | attached interrupt on pin ")); Serial.print(MQ135_D0);
   }
-  Serial.print(F("\n | "));
-  Serial.println(DONE);
+  Serial.print(F("\n | ")); Serial.println(DONE);
 
-  // DHT11
-  Serial.print(SETUP);
-  Serial.print(F(" DHT11: "));
+  // setup DHT11
+  Serial.print(SETUP); Serial.print(F(" DHT11: "));
   dht.begin();
   Serial.println(DONE);
 
-  Serial.print(SETUP);
-  Serial.println(F(" finished\n"));
+  // setup IN LOOP LED
+  Serial.print(SETUP); Serial.print(F(" SETUP FINISHED LED: "));
+  pinMode(SETUP_FINISHED_PIN, OUTPUT);
+  Serial.println(DONE);
+
+  Serial.print(SETUP); Serial.println(F(" finished\n"));
 
   tOutput.enableDelayed(30 * TASK_SECOND);
 }
@@ -129,6 +134,10 @@ void loop() {
 }
 
 /// FUNCTIONS
+void setupFinished() {
+  digitalWrite(SETUP_FINISHED_PIN, HIGH);
+}
+
 void readTemperatureAndHumidity() {
   // corrector value
   const float t = dht.readTemperature() - 1.;
@@ -151,33 +160,14 @@ inline void mq135AnalogRead() {
 }
 
 void readGas() {
+  // Serial.println(F("gas readed from task!"));
   mq135AnalogRead();
 }
 
 void readGasImmediate() {
-  //Serial.println(F("gas readed from interrupt!"));
+  // Serial.println(F("gas readed from interrupt!"));
   mq135AnalogRead();
   tGasImmediate.disable();
-}
-
-uint8_t generateLedConfiguration(float iaqi) {
-  const uint8_t HIGH_GREEN = 1;
-  const uint8_t HIGH_YELLOW = 2;
-  const uint8_t HIGH_RED = 4;
-
-  uint8_t conf = 0x0;
-
-  if (20 <= iaqi && iaqi < 80) {
-    conf |= HIGH_YELLOW;
-  }
-  if (iaqi < 40) {
-    conf |= HIGH_RED;
-  }
-  if (60 <= iaqi) {
-    conf |= HIGH_GREEN;
-  }
-
-  return conf;
 }
 
 void output() {
@@ -198,9 +188,12 @@ void output() {
 
   const float iaqi = iaqIndex(t, h, analog_read);
 
-  const uint8_t conf = generateLedConfiguration(iaqi);
-  leds.show(conf);
+  writeLeds(LED_PINS, generateLedConfiguration(iaqi));
 
+  if(WiFi.status() != WL_CONNECTED) {
+    Serial.println();
+    return;
+  }
   ///
   const int16_t responseCode = shareValues(t, h, analog_read, iaqi);
   Serial.print(F("HTTP POST: "));

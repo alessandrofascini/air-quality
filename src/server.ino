@@ -1,8 +1,6 @@
 #include "secrets.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <format>
-#include <string>
 
 int setupWiFi() {
   const uint8_t retry = 20;
@@ -21,7 +19,7 @@ int setupWiFi() {
   return WL_CONNECTED;
 }
 
-int shareValues(float temperature, uint8_t humidity, uint16_t analog_read, float iaqi) {
+const int shareValues(float temperature, uint8_t humidity, uint16_t analog_read, float iaqi) {
   WiFiClient client;
   HTTPClient http;
 
@@ -29,7 +27,7 @@ int shareValues(float temperature, uint8_t humidity, uint16_t analog_read, float
 
   http.addHeader(F("Content-Type"), F("text/plain"));
 
-  int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read + ";" + iaqi);
+  const int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read + ";" + iaqi);
   http.end();
   return httpResponseCode;
 }

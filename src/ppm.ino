@@ -1,8 +1,8 @@
 /// Parameters to model temperature and humidity dependence
-#define CORA 0.00035
-#define CORB 0.02718
-#define CORC 1.39538
-#define CORD 0.0018
+const inline float CORA = 0.00035;
+const inline float CORB = 0.02718;
+const inline float CORC = 1.39538;
+const inline float CORD = 0.0018;
 
 /**************************************************************************/
 /*!
@@ -12,16 +12,16 @@
 @return The calculated correction factor
 */
 /**************************************************************************/
-float getCorrectionFactor(float t, uint8_t h) {
+inline float getCorrectionFactor(float t, uint8_t h) {
   return CORA * t * t - CORB * t + CORC - (h-33.)*CORD;
 }
 
-float ppmPrepare(MQUnifiedsensor *sensor, uint16_t analog, float t, uint8_t h) {
+inline float ppmPrepare(MQUnifiedsensor *sensor, uint16_t analog, float t, uint8_t h) {
   sensor->setADC(analog);
   return getCorrectionFactor(t, h);
 }
 
-float readPPM(MQUnifiedsensor *sensor, const float a, const float b, const float cFactor) {
+inline float readPPM(MQUnifiedsensor *sensor, const float a, const float b, const float cFactor) {
   sensor->setA(a);
   sensor->setB(b);
   return sensor->readSensor(false, cFactor);
