@@ -14,7 +14,7 @@ const uint8_t MQ135_D0 = 22;
 const uint8_t DHT_PIN = 23;
 
 /// FUNCTIONS PROTOTYPE
-MQUnifiedsensor newMQ135(uint8_t PIN_A0); 
+MQUnifiedsensor newMQ135(uint8_t PIN_A0);
 void readTemperatureAndHumidity();
 void readGas();
 void readGasImmediate();
@@ -33,32 +33,28 @@ RunningAverage gas(40);
 /// TASKS
 
 Task tTempHum(2 * TASK_SECOND,
-  TASK_FOREVER,
-  readTemperatureAndHumidity,
-  &ts,
-  true
-);
+              TASK_FOREVER,
+              readTemperatureAndHumidity,
+              &ts,
+              true);
 
 Task tGas(TASK_SECOND,
-  TASK_FOREVER,
-  readGas,
-  &ts,
-  true
-);
+          TASK_FOREVER,
+          readGas,
+          &ts,
+          true);
 
 Task tGasImmediate(TASK_IMMEDIATE,
-  TASK_FOREVER,
-  readGasImmediate,
-  &ts,
-  false
-);
+                   TASK_FOREVER,
+                   readGasImmediate,
+                   &ts,
+                   false);
 
 Task tOutput(30 * TASK_SECOND,
-  TASK_FOREVER,
-  output,
-  &ts,
-  true
-);
+             TASK_FOREVER,
+             output,
+             &ts,
+             true);
 
 /// INTERRUPTS
 volatile unsigned long last_call = 0;
@@ -79,37 +75,46 @@ void setup() {
   const String SETUP = F("[SETUP]");
   const String DONE = F("done");
 
-  Serial.print(SETUP); Serial.println(F(" begin"));
+  Serial.print(SETUP);
+  Serial.println(F(" begin"));
 
   /// setup led
-  Serial.print(SETUP); Serial.print(F(" LED: "));
+  Serial.print(SETUP);
+  Serial.print(F(" LED: "));
   leds.setup();
   Serial.println(DONE);
 
   // setupWifi
-  Serial.print(SETUP); Serial.print(F(" WI-FI: "));
+  Serial.print(SETUP);
+  Serial.print(F(" WI-FI: "));
   setupWiFi();
   Serial.println(DONE);
 
   // MQ135
-  Serial.print(SETUP); Serial.print(F(" MQ135: "));
+  Serial.print(SETUP);
+  Serial.print(F(" MQ135: "));
   MQ135.init();
 
-  if(digitalPinToInterrupt(MQ135_D0) == -1) {
-    Serial.print(F("\n | cannot attach interrupt on pin ")); Serial.print(MQ135_D0);
+  if (digitalPinToInterrupt(MQ135_D0) == -1) {
+    Serial.print(F("\n | cannot attach interrupt on pin "));
+    Serial.print(MQ135_D0);
   } else {
     pinMode(MQ135_D0, INPUT_PULLUP);
     attachInterrupt(MQ135_D0, isr, FALLING);
-    Serial.print(F("\n | attached interrupt on pin ")); Serial.print(MQ135_D0);
+    Serial.print(F("\n | attached interrupt on pin "));
+    Serial.print(MQ135_D0);
   }
-  Serial.print(F("\n | ")); Serial.println(DONE);
+  Serial.print(F("\n | "));
+  Serial.println(DONE);
 
   // DHT11
-  Serial.print(SETUP); Serial.print(F(" DHT11: "));
+  Serial.print(SETUP);
+  Serial.print(F(" DHT11: "));
   dht.begin();
   Serial.println(DONE);
 
-  Serial.print(SETUP); Serial.println(F(" finished\n"));
+  Serial.print(SETUP);
+  Serial.println(F(" finished\n"));
 
   tOutput.enableDelayed(30 * TASK_SECOND);
 }
@@ -165,7 +170,7 @@ uint8_t generateLedConfiguration(float iaqi) {
   if (20 <= iaqi && iaqi < 80) {
     conf |= HIGH_YELLOW;
   }
-    if (iaqi < 40) {
+  if (iaqi < 40) {
     conf |= HIGH_RED;
   }
   if (60 <= iaqi) {
@@ -181,16 +186,22 @@ void output() {
   const uint16_t analog_read = gas.getAverage();
 
   Serial.println(F("=> DATA <="));
-  Serial.print(F("T: ")); Serial.print(t); Serial.println(F(" °C"));
-  Serial.print(F("H: ")); Serial.print(h); Serial.println(F(" %"));
-  Serial.print(F("V: ")); Serial.print(analog_read); Serial.println();
+  Serial.print(F("T: "));
+  Serial.print(t);
+  Serial.println(F(" °C"));
+  Serial.print(F("H: "));
+  Serial.print(h);
+  Serial.println(F(" %"));
+  Serial.print(F("V: "));
+  Serial.print(analog_read);
+  Serial.println();
 
   const float iaqi = iaqIndex(t, h, analog_read);
 
   const uint8_t conf = generateLedConfiguration(iaqi);
   leds.show(conf);
 
-  /// 
+  ///
   const int16_t responseCode = shareValues(t, h, analog_read, iaqi);
   Serial.print(F("HTTP POST: "));
   if (responseCode == 200) {
