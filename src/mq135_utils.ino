@@ -5,7 +5,7 @@ const inline uint8_t RL = 20;
 // const inline float R0 = 71.6152;
 // const inline float R0 = 6.9358;
 // const inline float R0 = 5.60617;
-const inline float R0 = 5.36755;
+const inline float R0 = 6.23564542658;
 
 MQUnifiedsensor newMQ135(uint8_t PIN_A0) {
   MQUnifiedsensor sensor("", V_REF, BIT_RESOLUTION, PIN_A0, "");

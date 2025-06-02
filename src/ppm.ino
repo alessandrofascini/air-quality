@@ -13,7 +13,7 @@ const inline float CORD = 0.0018;
 */
 /**************************************************************************/
 inline float getCorrectionFactor(float t, uint8_t h) {
-  return CORA * t * t - CORB * t + CORC - (h-33.)*CORD;
+  return CORA * t * t - CORB * t + CORC - (h-33.) * CORD;
 }
 
 inline float ppmPrepare(MQUnifiedsensor *sensor, uint16_t analog, float t, uint8_t h) {

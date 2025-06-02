@@ -11,8 +11,8 @@ const inline uint8_t RED_LED = 21;
 const inline uint8_t LED_PINS = ((RED_LED << 5) & 224) | ((YELLOW_LED << 2) & 28) | (GREEN_LED & 3);
 
 const inline uint8_t MQ135_A0 = 34;
-const inline uint8_t MQ135_D0 = 22;
-const inline uint8_t DHT_D0 = 23;
+const inline uint8_t MQ135_D0 = 35;
+const inline uint8_t DHT_D0 = 22;
 const inline uint8_t SETUP_FINISHED_PIN = 2;
 
 /// FUNCTIONS PROTOTYPE
@@ -101,9 +101,9 @@ void setup() {
   Serial.println(DONE);
 
   // setup wifi
-  Serial.print(SETUP); Serial.print(F(" WI-FI: "));
-  setupWiFi();
-  Serial.println(DONE);
+  // Serial.print(SETUP); Serial.print(F(" WI-FI: "));
+  // setupWiFi();
+  // Serial.println(DONE);
 
   // setup MQ135
   Serial.print(SETUP); Serial.print(F(" MQ135: "));
