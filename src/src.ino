@@ -101,9 +101,9 @@ void setup() {
   Serial.println(DONE);
 
   // setup wifi
-  // Serial.print(SETUP); Serial.print(F(" WI-FI: "));
-  // setupWiFi();
-  // Serial.println(DONE);
+  Serial.print(SETUP); Serial.print(F(" WI-FI: "));
+  setupWiFi();
+  Serial.println(DONE);
 
   // setup MQ135
   Serial.print(SETUP); Serial.print(F(" MQ135: "));
