@@ -79,7 +79,7 @@ volatile unsigned long last_call = 0;
 volatile bool readGasNow = false;
 void IRAM_ATTR isr() {
   const unsigned long now = millis();
-  if (now - last_call > 750) {
+  if (now - last_call > 500) {
     last_call = now;
     readGasNow = true;
   }
@@ -102,8 +102,11 @@ void setup() {
 
   // setup wifi
   Serial.print(SETUP); Serial.print(F(" WI-FI: "));
-  setupWiFi();
-  Serial.println(DONE);
+  if(setupWiFi() == WL_CONNECTED) {
+    Serial.println(DONE);
+  } else {
+    Serial.println(F("not connected"));
+  }
 
   // setup MQ135
   Serial.print(SETUP); Serial.print(F(" MQ135: "));

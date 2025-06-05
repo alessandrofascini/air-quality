@@ -10,7 +10,7 @@ int setupWiFi() {
   uint8_t it = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(250);
     if (++it == retry)
     {
       return WiFi.status();
