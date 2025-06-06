@@ -74,19 +74,25 @@ app.post("/", async (req, res) => {
   try {
     const timestamp = new Date();
 
-    const [temperature, humidity, raw_value, iaqi] = req.body
+    const [device_id, temperature, humidity, raw_value, iaqi] = req.body
       .split(";")
       .filter((v) => v !== "")
-      .map((v) => +v);
+      .map((v) => {
+        const n = +v;
+        if (Number.isNaN(n)) {
+          return v;
+        }
+        return n;
+      });
 
-    // console.log(
-    //   `[${timestamp.toISOString()}] T = ${temperature.toFixed(
-    //     1
-    //   )} °C ± 2; RH = ${humidity} % ± 5; raw_value = ${raw_value}; IAQI = ${iaqi}`
-    // );
-    //  KΩ
-    console.log(timestamp, temperature, humidity, raw_value, iaqi);
+    console.log(
+      `[${timestamp.toISOString()}] ${device_id}: T = ${temperature.toFixed(
+        1
+      )} °C ± 2; RH = ${humidity} % ± 5; raw_value = ${raw_value}; IAQI = ${iaqi}`
+    );
+
     await collection.insertOne({
+      device_id,
       timestamp,
       temperature,
       humidity,

@@ -25,7 +25,8 @@ const int shareValues(float temperature, uint8_t humidity, uint16_t analog_read,
 
   http.addHeader(F("Content-Type"), F("text/plain"));
 
-  const int httpResponseCode = http.POST(String(temperature) + ";" + humidity + ";" + analog_read + ";" + iaqi);
+  const int httpResponseCode = http.POST(String(DEVICE_ID) + ";" + temperature + ";" + humidity + ";" + analog_read + ";" + iaqi);
+
   http.end();
   return httpResponseCode;
 }
