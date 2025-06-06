@@ -88,7 +88,7 @@ void IRAM_ATTR isr() {
 /// SETUP
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(2000);
 
   const String SETUP = F("[SETUP]");
   const String DONE = F("done");

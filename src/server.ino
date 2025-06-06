@@ -3,16 +3,14 @@
 #include <HTTPClient.h>
 
 int setupWiFi() {
-  const uint8_t retry = 20;
+  const uint8_t MAX_RETRY = 20;
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   uint8_t it = 0;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(250);
-    if (++it == retry)
-    {
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    if (++it == MAX_RETRY) {
       return WiFi.status();
     }
   }
